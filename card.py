@@ -14,3 +14,26 @@ COLOR_ICONS = {
     YELLOW: '💛',
     BLACK: '⬛️'
 }
+
+ZERO = '0'
+ONE = '1'
+TWO = '2'
+THREE = '3'
+FOUR = '4'
+FIVE = '5'
+SIX = '6'
+SEVEN = '7'
+EIGHT = '8'
+NINE = '9'
+DRAW_TWO = 'draw'
+REVERSE = 'reverse'
+SKIP = 'skip'
+
+VALUES = (ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, DRAW_TWO,
+          REVERSE, SKIP)
+WILD_VALUES = (ONE, TWO, THREE, FOUR, FIVE, DRAW_TWO, REVERSE, SKIP)
+
+CHOOSE = 'colorchooser'
+DRAW_FOUR = 'draw_four'
+
+SPECIALS = (CHOOSE, DRAW_FOUR)

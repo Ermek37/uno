@@ -28,3 +28,29 @@ class Card:
             return self.rank
         else:
             return self.color + " " + self.rank
+
+
+class Deck:
+
+    def init(self):
+        self.deck = []
+        for clr in color:
+            for ran in rank:
+                if ctype[ran] != 'action_nocolor':
+                    self.deck.append(Card(clr, ran))
+                    self.deck.append(Card(clr, ran))
+                else:
+                    self.deck.append(Card(clr, ran))
+
+    def str(self):
+        deck_comp = ''
+        for card in self.deck:
+            deck_comp += '\n' + card.str()
+        return 'The deck has ' + deck_comp
+
+    def shuffle(self):
+        random.shuffle(self.deck)
+
+    def deal(self):
+        return self.deck.pop()
+

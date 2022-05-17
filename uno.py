@@ -28,6 +28,3 @@ class Card:
             return self.rank
         else:
             return self.color + " " + self.rank
-
-
-

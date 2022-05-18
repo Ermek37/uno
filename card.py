@@ -155,3 +155,38 @@ STICKERS_GREY = {
     'draw_four': 'BQADBAADYQIAAl9XmQAB_HWlvZIscDEC',
     'colorchooser': 'BQADBAADXwIAAl9XmQABY_ksDdMex-wC'
 }
+class Card(object):
+
+    def __init__(self, color, value, special=None):
+        self.color = color
+        self.value = value
+        self.special = special
+
+    def __str__(self):
+        if self.special:
+            return self.special
+        else:
+            return '%s_%s' % (self.color, self.value)
+
+    def __repr__(self):
+        if self.special:
+            return '%s%s%s' % (COLOR_ICONS.get(self.color, ''),
+                               COLOR_ICONS[BLACK],
+                               ' '.join([s.capitalize()
+                                         for s in self.special.split('_')]))
+        else:
+            return '%s%s' % (COLOR_ICONS[self.color], self.value.capitalize())
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __lt__(self, other):
+        return str(self) < str(other)
+
+
+def from_str(string):
+    if string not in SPECIALS:
+        color, value = string.split('_')
+        return Card(color, value)
+    else:
+        return Card(None, None, string)

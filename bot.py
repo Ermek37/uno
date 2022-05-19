@@ -151,5 +151,117 @@ def join_game(bot, update):
                    reply_to_message_id=update.message.message_id)
 
 
+@user_locale
+def leave_game(bot, update):
+    """Handler for the /leave command"""
+    chat = update.message.chat
+    user = update.message.from_user
+
+    player = gm.player_for_user_in_chat(user, chat)
+
+    if player is None:
+        send_async(bot, chat.id, text=_("You are not playing in a game in "
+                                        "this group."),
+                   reply_to_message_id=update.message.message_id)
+        return
+
+    game = player.game
+    user = update.message.from_user
+
+    try:
+        gm.leave_game(user, chat)
+
+    except NoGameInChatError:
+        send_async(bot, chat.id, text=_("You are not playing in a game in "
+                                        "this group."),
+                   reply_to_message_id=update.message.message_id)
+
+    except NotEnoughPlayersError:
+        gm.end_game(chat, user)
+        send_async(bot, chat.id, text=__("Game ended!", multi=game.translate))
+
+    else:
+        if game.started:
+            send_async(bot, chat.id,
+                       text=__("Okay. Next Player: {name}",
+                               multi=game.translate).format(
+                           name=display_name(game.current_player.user)),
+                       reply_to_message_id=update.message.message_id)
+        else:
+            send_async(bot, chat.id,
+                       text=__("{name} left the game before it started.",
+                               multi=game.translate).format(
+                           name=display_name(user)),
+                       reply_to_message_id=update.message.message_id)
+
+
+@user_locale
+def kick_player(bot, update):
+    """Handler for the /kick command"""
+
+    if update.message.chat.type == 'private':
+        help_handler(bot, update)
+        return
+
+    chat = update.message.chat
+    user = update.message.from_user
+
+    try:
+        game = gm.chatid_games[chat.id][-1]
+
+    except (KeyError, IndexError):
+            send_async(bot, chat.id,
+                   text=_("No game is running at the moment. "
+                          "Create a new game with /new"),
+                   reply_to_message_id=update.message.message_id)
+            return
+
+    if not game.started:
+        send_async(bot, chat.id,
+                   text=_("The game is not started yet. "
+                          "Join the game with /join and start the game with /start"),
+                   reply_to_message_id=update.message.message_id)
+        return
+
+    if user_is_creator_or_admin(user, game, bot, chat):
+
+        if update.message.reply_to_message:
+            kicked = update.message.reply_to_message.from_user
+
+            try:
+                gm.leave_game(kicked, chat)
+
+            except NoGameInChatError:
+                send_async(bot, chat.id, text=_("Player {name} is not found in the current game.".format(name=display_name(kicked))),
+                                reply_to_message_id=update.message.message_id)
+                return
+
+            except NotEnoughPlayersError:
+                gm.end_game(chat, user)
+                send_async(bot, chat.id,
+                                text=_("{0} was kicked by {1}".format(display_name(kicked), display_name(user))))
+                send_async(bot, chat.id, text=__("Game ended!", multi=game.translate))
+                return
+
+            send_async(bot, chat.id,
+                            text=_("{0} was kicked by {1}".format(display_name(kicked), display_name(user))))
+
+        else:
+            send_async(bot, chat.id,
+                text=_("Please reply to the person you want to kick and type /kick again."),
+                reply_to_message_id=update.message.message_id)
+            return
+
+        send_async(bot, chat.id,
+                   text=__("Okay. Next Player: {name}",
+                           multi=game.translate).format(
+                       name=display_name(game.current_player.user)),
+                   reply_to_message_id=update.message.message_id)
+
+    else:
+        send_async(bot, chat.id,
+                  text=_("Only the game creator ({name}) and admin can do that.")
+                  .format(name=game.starter.first_name),
+                  reply_to_message_id=update.message.message_id)
 
 

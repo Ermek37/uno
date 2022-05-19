@@ -7,7 +7,6 @@ from errors import (AlreadyJoinedError, LobbyClosedError, NoGameInChatError,
 
 
 class GameManager(object):
-
     def __init__(self):
         self.chatid_games = dict()
         self.userid_players = dict()
@@ -17,7 +16,6 @@ class GameManager(object):
         self.logger = logging.getLogger(__name__)
 
     def new_game(self, chat):
-        
         chat_id = chat.id
 
         self.logger.debug("Creating new game in chat " + str(chat_id))
@@ -25,16 +23,20 @@ class GameManager(object):
 
         if chat_id not in self.chatid_games:
             self.chatid_games[chat_id] = list()
-            for g in list(self.chatid_games[chat_id]):
-                    if not g.players:
-                            self.chatid_games[chat_id].remove(g)
+
+        # remove old games
+        for g in list(self.chatid_games[chat_id]):
+            if not g.players:
+                self.chatid_games[chat_id].remove(g)
 
         self.chatid_games[chat_id].append(game)
         return game
-        
-        def leave_game(self, user, chat):
-            player = self.player_for_user_in_chat(user, chat)
-            players = self.userid_players.get(user.id, list())
+
+
+    def leave_game(self, user, chat):
+
+        player = self.player_for_user_in_chat(user, chat)
+        players = self.userid_players.get(user.id, list())
 
         if not player:
             games = self.chatid_games[chat.id]
@@ -60,10 +62,10 @@ class GameManager(object):
         player.leave()
         players.remove(player)
 
+        # If this is the selected game, switch to another
         if self.userid_current.get(user.id, None) is player:
             if players:
                 self.userid_current[user.id] = players[0]
             else:
                 del self.userid_current[user.id]
                 del self.userid_players[user.id]
-

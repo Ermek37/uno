@@ -265,3 +265,66 @@ def kick_player(bot, update):
                   reply_to_message_id=update.message.message_id)
 
 
+def select_game(bot, update):
+    """Handler for callback queries to select the current game"""
+
+    chat_id = int(update.callback_query.data)
+    user_id = update.callback_query.from_user.id
+    players = gm.userid_players[user_id]
+    for player in players:
+        if player.game.chat.id == chat_id:
+            gm.userid_current[user_id] = player
+            break
+    else:
+        send_async(bot,
+                   update.callback_query.message.chat_id,
+                   text=_("Game not found."))
+        return
+
+    @run_async
+    def selected(bot):
+        back = [[InlineKeyboardButton(text=_("Back to last group"),
+                                      switch_inline_query='')]]
+        bot.answerCallbackQuery(update.callback_query.id,
+                                text=_("Please switch to the group you selected!"),
+                                show_alert=False,
+                                timeout=TIMEOUT)
+
+        bot.editMessageText(chat_id=update.callback_query.message.chat_id,
+                            message_id=update.callback_query.message.message_id,
+                            text=_("Selected group: {group}\n"
+                                   "<b>Make sure that you switch to the correct "
+                                   "group!</b>").format(
+                                group=gm.userid_current[user_id].game.chat.title),
+                            reply_markup=InlineKeyboardMarkup(back),
+                            parse_mode=ParseMode.HTML,
+                            timeout=TIMEOUT)
+
+
+@game_locales
+def status_update(bot, update):
+    """Remove player from game if user leaves the group"""
+    chat = update.message.chat
+
+    if update.message.left_chat_member:
+        user = update.message.left_chat_member
+
+        try:
+            gm.leave_game(user, chat)
+            game = gm.player_for_user_in_chat(user, chat).game
+
+        except NoGameInChatError:
+            pass
+        except NotEnoughPlayersError:
+            gm.end_game(chat, user)
+            send_async(bot, chat.id, text=__("Game ended!",
+                                             multi=game.translate))
+        else:
+            send_async(bot, chat.id, text=__("Removing {name} from the game",
+                                             multi=game.translate)
+                       .format(name=display_name(user)))
+
+
+
+
+

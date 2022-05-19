@@ -123,3 +123,20 @@ us2 = UserSetting.get(id=game.current_player.user.id)
 
             gm.end_game(chat, user)
 
+
+def do_draw(bot, player):
+    """Does the drawing"""
+    game = player.game
+    draw_counter_before = game.draw_counter
+
+    try:
+        player.draw()
+    except DeckEmptyError:
+        send_async(bot, player.game.chat.id,
+                   text=("There are no more cards in the deck.",
+                           multi=game.translate))
+
+    if (game.last_card.value == c.DRAW_TWO or
+        game.last_card.special == c.DRAW_FOUR) and \
+            draw_counter_before > 0:
+        game.turn()

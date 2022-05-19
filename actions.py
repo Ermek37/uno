@@ -75,7 +75,6 @@ def do_skip(bot, player, job_queue=None):
 
             gm.end_game(chat, skipped_player.user)
 
-
 def do_play_card(bot, player, result_id):
     """Plays the selected card and sends an update to the group if needed"""
     card = c.from_str(result_id)
@@ -170,3 +169,4 @@ def skip_job(bot, job):
     if game_is_running(game):
         job_queue = job.context.job_queue
         do_skip(bot, player, job_queue)
+

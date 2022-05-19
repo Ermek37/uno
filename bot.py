@@ -112,5 +112,44 @@ def kill_game(bot, update):
                   reply_to_message_id=update.message.message_id)
 
 
+@user_locale
+def join_game(bot, update):
+    """Handler for the /join command"""
+    chat = update.message.chat
+
+    if update.message.chat.type == 'private':
+        help_handler(bot, update)
+        return
+
+    try:
+        gm.join_game(update.message.from_user, chat)
+
+    except LobbyClosedError:
+            send_async(bot, chat.id, text=_("The lobby is closed"))
+
+    except NoGameInChatError:
+        send_async(bot, chat.id,
+                   text=_("No game is running at the moment. "
+                          "Create a new game with /new"),
+                   reply_to_message_id=update.message.message_id)
+
+    except AlreadyJoinedError:
+        send_async(bot, chat.id,
+                   text=_("You already joined the game. Start the game "
+                          "with /start"),
+                   reply_to_message_id=update.message.message_id)
+
+    except DeckEmptyError:
+        send_async(bot, chat.id,
+                   text=_("There are not enough cards left in the deck for "
+                          "new players to join."),
+                   reply_to_message_id=update.message.message_id)
+
+    else:
+        send_async(bot, chat.id,
+                   text=_("Joined the game"),
+                   reply_to_message_id=update.message.message_id)
+
+
 
 

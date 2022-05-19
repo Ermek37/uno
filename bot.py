@@ -548,3 +548,77 @@ def skip_player(bot, update):
     else:
         do_skip(bot, player)
 
+@game_locales
+@user_locale
+def reply_to_query(bot, update):
+    """
+    Handler for inline queries.
+    Builds the result list for inline queries and answers to the client.
+    """
+    results = list()
+    switch = None
+
+    try:
+        user = update.inline_query.from_user
+        user_id = user.id
+        players = gm.userid_players[user_id]
+        player = gm.userid_current[user_id]
+        game = player.game
+    except KeyError:
+        add_no_game(results)
+    else:
+
+        # The game has not started.
+        # The creator may change the game mode, other users just get a "game has not started" message.
+        if not game.started:
+            if user_is_creator(user, game):
+                add_mode_classic(results)
+                add_mode_fast(results)
+                add_mode_wild(results)
+                add_mode_text(results)
+            else:
+                add_not_started(results)
+
+
+        elif user_id == game.current_player.user.id:
+            if game.choosing_color:
+                add_choose_color(results, game)
+                add_other_cards(player, results, game)
+            else:
+                if not player.drew:
+                    add_draw(player, results)
+
+                else:
+                    add_pass(results, game)
+
+                if game.last_card.special == c.DRAW_FOUR and game.draw_counter:
+                    add_call_bluff(results, game)
+
+                playable = player.playable_cards()
+                added_ids = list()  # Duplicates are not allowed
+
+                for card in sorted(player.cards):
+                    add_card(game, card, results,
+                             can_play=(card in playable and
+                                            str(card) not in added_ids))
+                    added_ids.append(str(card))
+
+                add_gameinfo(game, results)
+
+        elif user_id != game.current_player.user.id or not game.started:
+            for card in sorted(player.cards):
+                add_card(game, card, results, can_play=False)
+
+        else:
+            add_gameinfo(game, results)
+
+        for result in results:
+            result.id += ':%d' % player.anti_cheat
+
+        if players and game and len(players) > 1:
+            switch = _('Current game: {game}').format(game=game.chat.title)
+
+    answer_async(bot, update.inline_query.id, results, cache_time=0,
+                 switch_pm_text=switch, switch_pm_parameter='select')
+
+

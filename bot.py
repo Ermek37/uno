@@ -515,4 +515,36 @@ def disable_translations(bot, update):
                    reply_to_message_id=update.message.message_id)
         return
 
+@game_locales
+@user_locale
+def skip_player(bot, update):
+    """Handler for the /skip command"""
+    chat = update.message.chat
+    user = update.message.from_user
+
+    player = gm.player_for_user_in_chat(user, chat)
+    if not player:
+        send_async(bot, chat.id,
+                   text=_("You are not playing in a game in this chat."))
+        return
+
+    game = player.game
+    skipped_player = game.current_player
+
+    started = skipped_player.turn_started
+    now = datetime.now()
+    delta = (now - started).seconds
+
+    # You can't skip if the current player still has time left
+    # You can skip yourself even if you have time left (you'll still draw)
+    if delta < skipped_player.waiting_time and player != skipped_player:
+        n = skipped_player.waiting_time - delta
+        send_async(bot, chat.id,
+                   text=_("Please wait {time} second",
+                          "Please wait {time} seconds",
+                          n)
+                   .format(time=n),
+                   reply_to_message_id=update.message.message_id)
+    else:
+        do_skip(bot, player)
 

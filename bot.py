@@ -24,3 +24,27 @@ from start_bot import start_bot
 from utils import display_name
 from utils import send_async, answer_async, error, TIMEOUT, user_is_creator_or_admin, user_is_creator, game_is_running
 
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+@user_locale
+def notify_me(bot, update):
+    """Handler for /notify_me command, pm people for next game"""
+    chat_id = update.message.chat_id
+    if update.message.chat.type == 'private':
+        send_async(bot,
+                   chat_id,
+                   text=_("Send this command in a group to be notified "
+                          "when a new game is started there."))
+    else:
+        try:
+            gm.remind_dict[chat_id].add(update.message.from_user.id)
+        except KeyError:
+            gm.remind_dict[chat_id] = {update.message.from_user.id}
+
+
+
+

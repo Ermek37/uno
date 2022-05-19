@@ -403,6 +403,61 @@ def start_game(bot, update, args, job_queue):
 
 
 
+@user_locale
+def close_game(bot, update):
+    """Handler for the /close command"""
+    chat = update.message.chat
+    user = update.message.from_user
+    games = gm.chatid_games.get(chat.id)
+
+    if not games:
+        send_async(bot, chat.id,
+                   text=_("There is no running game in this chat."))
+        return
+
+    game = games[-1]
+
+    if user.id in game.owner:
+        game.open = False
+        send_async(bot, chat.id, text=_("Closed the lobby. "
+                                        "No more players can join this game."))
+        return
+
+    else:
+        send_async(bot, chat.id,
+                   text=_("Only the game creator ({name}) and admin can do that.")
+                   .format(name=game.starter.first_name),
+                   reply_to_message_id=update.message.message_id)
+        return
+
+
+@user_locale
+def open_game(bot, update):
+    """Handler for the /open command"""
+    chat = update.message.chat
+    user = update.message.from_user
+    games = gm.chatid_games.get(chat.id)
+
+    if not games:
+        send_async(bot, chat.id,
+                   text=_("There is no running game in this chat."))
+        return
+
+    game = games[-1]
+
+    if user.id in game.owner:
+        game.open = True
+        send_async(bot, chat.id, text=_("Opened the lobby. "
+                                        "New players may /join the game."))
+        return
+    else:
+        send_async(bot, chat.id,
+                   text=_("Only the game creator ({name}) and admin can do that.")
+                   .format(name=game.starter.first_name),
+                   reply_to_message_id=update.message.message_id)
+        return
+
+
 
 
 

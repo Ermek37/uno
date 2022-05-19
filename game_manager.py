@@ -66,4 +66,3 @@ class GameManager(object):
             else:
                 del self.userid_current[user.id]
                 del self.userid_players[user.id]
-

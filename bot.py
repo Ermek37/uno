@@ -458,6 +458,34 @@ def open_game(bot, update):
         return
 
 
+@user_locale
+def enable_translations(bot, update):
+    """Handler for the /enable_translations command"""
+    chat = update.message.chat
+    user = update.message.from_user
+    games = gm.chatid_games.get(chat.id)
+
+    if not games:
+        send_async(bot, chat.id,
+                   text=_("There is no running game in this chat."))
+        return
+
+    game = games[-1]
+
+    if user.id in game.owner:
+        game.translate = True
+        send_async(bot, chat.id, text=_("Enabled multi-translations. "
+                                        "Disable with /disable_translations"))
+        return
+
+    else:
+        send_async(bot, chat.id,
+                   text=_("Only the game creator ({name}) and admin can do that.")
+                   .format(name=game.starter.first_name),
+                   reply_to_message_id=update.message.message_id)
+        return
+
+
 
 
 

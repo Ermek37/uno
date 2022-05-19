@@ -325,6 +325,84 @@ def status_update(bot, update):
                        .format(name=display_name(user)))
 
 
+@game_locales
+@user_locale
+def start_game(bot, update, args, job_queue):
+    """Handler for the /start command"""
+
+    if update.message.chat.type != 'private':
+        chat = update.message.chat
+
+        try:
+            game = gm.chatid_games[chat.id][-1]
+        except (KeyError, IndexError):
+            send_async(bot, chat.id,
+                       text=_("There is no game running in this chat. Create "
+                              "a new one with /new"))
+            return
+
+        if game.started:
+            send_async(bot, chat.id, text=_("The game has already started"))
+
+        elif len(game.players) < MIN_PLAYERS:
+            send_async(bot, chat.id,
+                       text=__("At least {minplayers} players must /join the game "
+                              "before you can start it").format(minplayers=MIN_PLAYERS))
+
+        else:
+            # Starting a game
+            game.start()
+
+            for player in game.players:
+                player.draw_first_hand()
+            choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
+            first_message = (
+                __("First player: {name}\n"
+                   "Use /close to stop people from joining the game.\n"
+                   "Enable multi-translations with /enable_translations",
+                   multi=game.translate)
+                .format(name=display_name(game.current_player.user)))
+
+            @run_async
+            def send_first():
+                """Send the first card and player"""
+
+                bot.sendSticker(chat.id,
+                                sticker=c.STICKERS[str(game.last_card)],
+                                timeout=TIMEOUT)
+
+                bot.sendMessage(chat.id,
+                                text=first_message,
+                                reply_markup=InlineKeyboardMarkup(choice),
+                                timeout=TIMEOUT)
+
+            send_first()
+            start_player_countdown(bot, game, job_queue)
+
+    elif len(args) and args[0] == 'select':
+        players = gm.userid_players[update.message.from_user.id]
+
+        groups = list()
+        for player in players:
+            title = player.game.chat.title
+
+            if player is gm.userid_current[update.message.from_user.id]:
+                title = '- %s -' % player.game.chat.title
+
+            groups.append(
+                [InlineKeyboardButton(text=title,
+                                      callback_data=str(player.game.chat.id))]
+            )
+
+        send_async(bot, update.message.chat_id,
+                   text=_('Please select the group you want to play in.'),
+                   reply_markup=InlineKeyboardMarkup(groups))
+
+    else:
+        help_handler(bot, update)
+
+
+
 
 
 

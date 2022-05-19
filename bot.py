@@ -622,3 +622,66 @@ def reply_to_query(bot, update):
                  switch_pm_text=switch, switch_pm_parameter='select')
 
 
+@game_locales
+@user_locale
+def process_result(bot, update, job_queue):
+    """
+    Handler for chosen inline results.
+    Checks the players actions and acts accordingly.
+    """
+    try:
+        user = update.chosen_inline_result.from_user
+        player = gm.userid_current[user.id]
+        game = player.game
+        result_id = update.chosen_inline_result.result_id
+        chat = game.chat
+    except (KeyError, AttributeError):
+        return
+
+    logger.debug("Selected result: " + result_id)
+
+    result_id, anti_cheat = result_id.split(':')
+    last_anti_cheat = player.anti_cheat
+    player.anti_cheat += 1
+
+    if result_id in ('hand', 'gameinfo', 'nogame'):
+        return
+    elif result_id.startswith('mode_'):
+        # First 5 characters are 'mode_', the rest is the gamemode.
+        mode = result_id[5:]
+        game.set_mode(mode)
+        logger.info("Gamemode changed to {mode}".format(mode = mode))
+        send_async(bot, chat.id, text=__("Gamemode changed to {mode}".format(mode = mode)))
+        return
+    elif len(result_id) == 36:  # UUID result
+        return
+    elif int(anti_cheat) != last_anti_cheat:
+        send_async(bot, chat.id,
+                   text=__("Cheat attempt by {name}", multi=game.translate)
+                   .format(name=display_name(player.user)))
+        return
+    elif result_id == 'call_bluff':
+        reset_waiting_time(bot, player)
+        do_call_bluff(bot, player)
+    elif result_id == 'draw':
+        reset_waiting_time(bot, player)
+        do_draw(bot, player)
+    elif result_id == 'pass':
+        game.turn()
+    elif result_id in c.COLORS:
+        game.choose_color(result_id)
+    else:
+        reset_waiting_time(bot, player)
+        do_play_card(bot, player, result_id)
+
+    if game_is_running(game):
+        nextplayer_message = (
+            __("Next player: {name}", multi=game.translate)
+            .format(name=display_name(game.current_player.user)))
+        choice = [[InlineKeyboardButton(text=_("Make your choice!"), switch_inline_query_current_chat='')]]
+        send_async(bot, chat.id,
+                        text=nextplayer_message,
+                        reply_markup=InlineKeyboardMarkup(choice))
+        start_player_countdown(bot, game, job_queue)
+
+

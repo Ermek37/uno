@@ -69,3 +69,48 @@ class GameManager(object):
             else:
                 del self.userid_current[user.id]
                 del self.userid_players[user.id]
+
+
+def join_game(self, user, chat):
+        """ Create a player from the Telegram user and add it to the game """
+        self.logger.info("Joining game with id " + str(chat.id))
+
+        try:
+            game = self.chatid_games[chat.id][-1]
+        except (KeyError, IndexError):
+            raise NoGameInChatError()
+
+        if not game.open:
+            raise LobbyClosedError()
+
+        if user.id not in self.userid_players:
+            self.userid_players[user.id] = list()
+
+        players = self.userid_players[user.id]
+
+        # Don not re-add a player and remove the player from previous games in
+        # this chat, if he is in one of them
+        for player in players:
+            if player in game.players:
+                raise AlreadyJoinedError()
+
+        try:
+            self.leave_game(user, chat)
+        except NoGameInChatError:
+            pass
+        except NotEnoughPlayersError:
+            self.end_game(chat, user)
+
+            if user.id not in self.userid_players:
+                self.userid_players[user.id] = list()
+
+            players = self.userid_players[user.id]
+
+        player = Player(game, user)
+        if game.started:
+            player.draw_first_hand()
+
+        players.append(player)
+        self.userid_current[user.id] = player
+
+

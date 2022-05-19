@@ -75,4 +75,42 @@ def new_game(bot, update):
                           
                           
 
+@user_locale
+def kill_game(bot, update):
+    """Handler for the /kill command"""
+    chat = update.message.chat
+    user = update.message.from_user
+    games = gm.chatid_games.get(chat.id)
+
+    if update.message.chat.type == 'private':
+        help_handler(bot, update)
+        return
+
+    if not games:
+            send_async(bot, chat.id,
+                       text=_("There is no running game in this chat."))
+            return
+
+    game = games[-1]
+
+    if user_is_creator_or_admin(user, game, bot, chat):
+
+        try:
+            gm.end_game(chat, user)
+            send_async(bot, chat.id, text=__("Game ended!", multi=game.translate))
+
+        except NoGameInChatError:
+            send_async(bot, chat.id,
+                       text=_("The game is not started yet. "
+                              "Join the game with /join and start the game with /start"),
+                       reply_to_message_id=update.message.message_id)
+
+    else:
+        send_async(bot, chat.id,
+                  text=_("Only the game creator ({name}) and admin can do that.")
+                  .format(name=game.starter.first_name),
+                  reply_to_message_id=update.message.message_id)
+
+
+
 

@@ -75,8 +75,6 @@ def do_skip(bot, player, job_queue=None):
 
             gm.end_game(chat, skipped_player.user)
 
-
-
 def do_play_card(bot, player, result_id):
     """Plays the selected card and sends an update to the group if needed"""
     card = c.from_str(result_id)
@@ -139,4 +137,38 @@ def do_draw(bot, player):
     if (game.last_card.value == c.DRAW_TWO or
         game.last_card.special == c.DRAW_FOUR) and \
             draw_counter_before > 0:
+<<<<<<< HEAD
         game.turn()
+=======
+        game.turn()
+
+
+def start_player_countdown(bot, game, job_queue):
+    player = game.current_player
+    time = player.waiting_time
+
+    if time < MIN_FAST_TURN_TIME:
+        time = MIN_FAST_TURN_TIME
+
+    if game.mode == 'fast':
+        if game.job:
+            game.job.schedule_removal()
+
+        job = job_queue.run_once(
+            #lambda x,y: do_skip(bot, player),
+            skip_job,
+            time,
+            context=Countdown(player, job_queue)
+        )
+
+        logger.info("Started countdown for player: {player}. {time} seconds."
+                    .format(player=display_name(player.user), time=time))
+        player.game.job = job
+
+
+def skip_job(bot, job):
+    player = job.context.player
+    game = player.game
+    if game_is_running(game):
+        job_queue = job.context.job_queue
+        do_skip(bot, player, job_queue)

@@ -75,7 +75,6 @@ def do_skip(bot, player, job_queue=None):
 
             gm.end_game(chat, skipped_player.user)
 
-
 def do_play_card(bot, player, result_id):
     """Plays the selected card and sends an update to the group if needed"""
     card = c.from_str(result_id)
@@ -138,6 +137,9 @@ def do_draw(bot, player):
     if (game.last_card.value == c.DRAW_TWO or
         game.last_card.special == c.DRAW_FOUR) and \
             draw_counter_before > 0:
+<<<<<<< HEAD
+        game.turn()
+=======
         game.turn()
 
 

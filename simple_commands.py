@@ -79,3 +79,55 @@ def source(bot, update):
     send_async(bot, update.message.chat_id, text=source_text + '\n' +
                                                  attributions,
                parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+
+@user_locale
+def news(bot, update):
+    """Handler for the /news command"""
+    send_async(bot, update.message.chat_id,
+               text=_("All news here: https://telegram.me/unobotupdates"),
+               disable_web_page_preview=True)
+
+
+@user_locale
+def stats(bot, update):
+    user = update.message.from_user
+    us = UserSetting.get(id=user.id)
+    if not us or not us.stats:
+        send_async(bot, update.message.chat_id,
+                   text=_("You did not enable statistics. Use /settings in "
+                          "a private chat with the bot to enable them."))
+    else:
+        stats_text = list()
+
+        n = us.games_played
+        stats_text.append(
+            _("{number} game played",
+              "{number} games played",
+              n).format(number=n)
+        )
+
+        n = us.first_places
+        m = round((us.first_places / us.games_played) * 100) if us.games_played else 0
+        stats_text.append(
+            _("{number} first place ({percent}%)",
+              "{number} first places ({percent}%)",
+              n).format(number=n, percent=m)
+        )
+
+        n = us.cards_played
+        stats_text.append(
+            _("{number} card played",
+              "{number} cards played",
+              n).format(number=n)
+        )
+
+        send_async(bot, update.message.chat_id,
+                   text='\n'.join(stats_text))
+
+
+def register():
+    dispatcher.add_handler(CommandHandler('help', help_handler))
+    dispatcher.add_handler(CommandHandler('source', source))
+    dispatcher.add_handler(CommandHandler('news', news))
+    dispatcher.add_handler(CommandHandler('stats', stats))
+    dispatcher.add_handler(CommandHandler('modes', modes))

@@ -21,7 +21,6 @@ class Countdown(object):
         self.player = player
         self.job_queue = job_queue
 
-
 def do_skip(bot, player, job_queue=None):
     game = player.game
     chat = game.chat
@@ -75,3 +74,101 @@ def do_skip(bot, player, job_queue=None):
                        .format(name=display_name(skipped_player.user)))
 
             gm.end_game(chat, skipped_player.user)
+
+def do_play_card(bot, player, result_id):
+    """Plays the selected card and sends an update to the group if needed"""
+    card = c.from_str(result_id)
+    player.play(card)
+    game = player.game
+    chat = game.chat
+    user = player.user
+
+    us = UserSetting.get(id=user.id)
+    if not us:
+        us = UserSetting(id=user.id)
+
+    if us.stats:
+        us.cards_played += 1
+
+    if game.choosing_color:
+        send_async(bot, chat.id, text=("Please choose a color", multi=game.translate))
+
+    if len(player.cards) == 1:
+        send_async(bot, chat.id, text="UNO!")
+
+    if len(player.cards) == 0:
+        send_async(bot, chat.id,
+                   text=("{name} won!", multi=game.translate)
+                   .format(name=user.first_name))
+
+        if us.stats:
+            us.games_played += 1
+
+            if game.players_won is 0:
+                us.first_places += 1
+
+        game.players_won += 1
+
+        try:
+            gm.leave_game(user, chat)
+        except NotEnoughPlayersError:
+            send_async(bot, chat.id,
+                       text=("Game ended!", multi=game.translate))
+
+us2 = UserSetting.get(id=game.current_player.user.id)
+            if us2 and us2.stats:
+                us2.games_played += 1
+
+            gm.end_game(chat, user)
+
+
+def do_draw(bot, player):
+    """Does the drawing"""
+    game = player.game
+    draw_counter_before = game.draw_counter
+
+    try:
+        player.draw()
+    except DeckEmptyError:
+        send_async(bot, player.game.chat.id,
+                   text=("There are no more cards in the deck.",
+                           multi=game.translate))
+
+    if (game.last_card.value == c.DRAW_TWO or
+        game.last_card.special == c.DRAW_FOUR) and \
+            draw_counter_before > 0:
+<<<<<<< HEAD
+        game.turn()
+=======
+        game.turn()
+
+
+def start_player_countdown(bot, game, job_queue):
+    player = game.current_player
+    time = player.waiting_time
+
+    if time < MIN_FAST_TURN_TIME:
+        time = MIN_FAST_TURN_TIME
+
+    if game.mode == 'fast':
+        if game.job:
+            game.job.schedule_removal()
+
+        job = job_queue.run_once(
+            #lambda x,y: do_skip(bot, player),
+            skip_job,
+            time,
+            context=Countdown(player, job_queue)
+        )
+
+        logger.info("Started countdown for player: {player}. {time} seconds."
+                    .format(player=display_name(player.user), time=time))
+        player.game.job = job
+
+
+def skip_job(bot, job):
+    player = job.context.player
+    game = player.game
+    if game_is_running(game):
+        job_queue = job.context.job_queue
+        do_skip(bot, player, job_queue)

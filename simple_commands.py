@@ -61,3 +61,21 @@ def modes(bot, update):
       "just like when playing a card, and all gamemode options should appear.")
     send_async(bot, update.message.chat_id, text=modes_explanation,
                parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+
+@user_locale
+def source(bot, update):
+    """Handler for the /help command"""
+    source_text = _("This bot is Free Software and licensed under the AGPL. "
+      "The code is available here: \n"
+      "https://github.com/jh0ker/mau_mau_bot")
+    attributions = _("Attributions:\n"
+      'Draw icon by '
+      '<a href="http://www.faithtoken.com/">Faithtoken</a>\n'
+      'Pass icon by '
+      '<a href="http://delapouite.com/">Delapouite</a>\n'
+      "Originals available on http://game-icons.net\n"
+      "Icons edited by ɳick")
+
+    send_async(bot, update.message.chat_id, text=source_text + '\n' +
+                                                 attributions,
+               parse_mode=ParseMode.HTML, disable_web_page_preview=True)

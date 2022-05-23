@@ -169,11 +169,3 @@ class GameManager(object):
             if player.game.chat.id == chat.id:
                 return player
         return None
-
-    def player_for_user_in_chat(self, user, chat):
-        players = self.userid_players.get(user.id, list())
-        for player in players:
-            if player.game.chat.id == chat.id:
-                return player
-        return None
-        

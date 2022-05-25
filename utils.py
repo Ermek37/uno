@@ -18,8 +18,19 @@ def list_subtract(list1, list2):
         list1.remove(x)
 
     return list(sorted(list1))
+
 def display_name(user):
     user_name = user.first_name
     if user.username:
         user_name += ' (@' + user.username + ')'
     return user_name
+
+def display_color(color):
+    if color == "r":
+        return _("{emoji} Red").format(emoji='❤️')
+    if color == "b":
+        return _("{emoji} Blue").format(emoji='💙')
+    if color == "g":
+        return _("{emoji} Green").format(emoji='💚')
+    if color == "y":
+        return _("{emoji} Yellow").format(emoji='💛')

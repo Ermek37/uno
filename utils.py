@@ -34,3 +34,17 @@ def display_color(color):
         return _("{emoji} Green").format(emoji='💚')
     if color == "y":
         return _("{emoji} Yellow").format(emoji='💛')
+
+def display_color_group(color, game):
+    if color == "r":
+        return __("{emoji} Red", game.translate).format(
+            emoji='❤️')
+    if color == "b":
+        return __("{emoji} Blue", game.translate).format(
+            emoji='💙')
+    if color == "g":
+        return __("{emoji} Green", game.translate).format(
+            emoji='💚')
+    if color == "y":
+        return __("{emoji} Yellow", game.translate).format(
+            emoji='💛')

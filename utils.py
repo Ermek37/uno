@@ -48,3 +48,14 @@ def display_color_group(color, game):
     if color == "y":
         return __("{emoji} Yellow", game.translate).format(
             emoji='💛')
+
+def error(bot, update, error):
+    logger.exception(error)
+def send_async(bot, *args, **kwargs):
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = TIMEOUT
+
+    try:
+        bot.sendMessage(*args, **kwargs)
+    except Exception as e:
+        error(None, None, e)

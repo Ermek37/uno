@@ -1,5 +1,4 @@
 # UNO
-Telegram Bot - UNO Game
 
 Aelina Daniyar kyzy, Ermek Ilikeshova and Aizhamal Zhetigenova worked on this project
 Telegram Bot that allows you to play the popular card game UNO via inline queries. 
@@ -21,3 +20,4 @@ Setup
 
 You can change some gameplay parameters like turn times, minimum amount of players and default gamemode in config.json. Current gamemodes available: classic, fast and wild. Check the details with the /modes command.
 Then run the bot with python3 bot.py.
+

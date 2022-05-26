@@ -137,6 +137,9 @@ def do_draw(bot, player):
     if (game.last_card.value == c.DRAW_TWO or
         game.last_card.special == c.DRAW_FOUR) and \
             draw_counter_before > 0:
+<<<<<<< HEAD
+        game.turn()
+=======
         game.turn()
 
 
@@ -169,4 +172,3 @@ def skip_job(bot, job):
     if game_is_running(game):
         job_queue = job.context.job_queue
         do_skip(bot, player, job_queue)
-

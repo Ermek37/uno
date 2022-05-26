@@ -1,5 +1,6 @@
 # UNO
 
+Aelina Daniyar kyzy, Ermek Ilikeshova and Aizhamal Zhetigenova worked on this project
 Telegram Bot that allows you to play the popular card game UNO via inline queries. 
 The project was implemented using Python with various modules for efficient arrays, machine learning and GUIs. Q-learning agents are trained inside the game environment and the resulting model can be analyzed inside a graphical version of the game including AI and human players, as well as a naive baseline algorithm.
 

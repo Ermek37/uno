@@ -57,3 +57,38 @@ def __call__(self, singular, plural=None, n=1, locale=None):
             return translator.ngettext(singular, plural, n)
 
 _ = _Underscore()
+
+def __(singular, plural=None, n=1, multi=False):
+    translations = list()
+
+    if not multi and len(set(_.locale_stack)) >= 1:
+        translations.append(_(singular, plural, n, 'en_US'))
+
+    else:
+        for locale in _.locale_stack:
+            translation = _(singular, plural, n, locale)
+
+            if translation not in translations:
+                translations.append(translation)
+
+    return '\n'.join(translations)
+
+
+def user_locale(func):
+    @wraps(func)
+    @db_session
+    def wrapped(bot, update, *pargs, **kwargs):
+        user = _user_chat_from_update(update)[0]
+
+        with db_session:
+            us = UserSetting.get(id=user.id)
+
+        if us and us.lang != 'en':
+            _.push(us.lang)
+        else:
+            _.push('en_US')
+
+        result = func(bot, update, *pargs, **kwargs)
+        _.pop()
+        return result
+    return wrapped

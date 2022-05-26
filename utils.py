@@ -59,3 +59,33 @@ def send_async(bot, *args, **kwargs):
         bot.sendMessage(*args, **kwargs)
     except Exception as e:
         error(None, None, e)
+
+def answer_async(bot, *args, **kwargs):
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = TIMEOUT
+
+    try:
+        bot.answerInlineQuery(*args, **kwargs)
+    except Exception as e:
+        error(None, None, e)
+
+
+def game_is_running(game):
+    return game in gm.chatid_games.get(game.chat.id, list())
+
+
+def user_is_creator(user, game):
+    return user.id in game.owner
+
+
+def user_is_admin(user, bot, chat):
+    return user.id in get_admin_ids(bot, chat.id)
+
+
+def user_is_creator_or_admin(user, game, bot, chat):
+    return user_is_creator(user, game) or user_is_admin(user, bot, chat)
+
+MWT(timeout=60*60)
+def get_admin_ids(bot, chat_id):
+    """Returns a list of admin IDs for a given chat. Results are cached for 1 hour."""
+    return [admin.user.id for admin in bot.get_chat_administrators(chat_id)]

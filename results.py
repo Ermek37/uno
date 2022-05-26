@@ -53,3 +53,37 @@ def add_no_game(results):
                                       'current game in this group'))
         )
     )
+def add_not_started(results):
+    """Add text result if the game has not yet started"""
+    results.append(
+        InlineQueryResultArticle(
+            "nogame",
+            title=_("The game wasn't started yet"),
+            input_message_content=
+            InputTextMessageContent(_('Start the game with /start'))
+        )
+    )
+
+
+def add_mode_classic(results):
+    """Change mode to classic"""
+    results.append(
+        InlineQueryResultArticle(
+            "mode_classic",
+            title=_("🎻 Classic mode"),
+            input_message_content=
+            InputTextMessageContent(_('Classic 🎻'))
+        )
+    )
+
+
+def add_mode_fast(results):
+    """Change mode to classic"""
+    results.append(
+        InlineQueryResultArticle(
+            "mode_fast",
+            title=_("🚀 Sanic mode"),
+            input_message_content=
+            InputTextMessageContent(_('Gotta go fast! 🚀'))
+        )
+    )

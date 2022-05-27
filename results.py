@@ -122,3 +122,73 @@ def add_draw(player, results):
                                     .format(number=n))
         )
     )
+
+def add_gameinfo(game, results):
+    """Add option to show game info"""
+
+    results.append(
+        Sticker(
+            "gameinfo",
+            sticker_file_id=c.STICKERS['option_info'],
+            input_message_content=game_info(game)
+        )
+    )
+
+
+def add_pass(results, game):
+    """Add option to pass"""
+    results.append(
+        Sticker(
+            "pass", sticker_file_id=c.STICKERS['option_pass'],
+            input_message_content=InputTextMessageContent(
+                __('Pass', multi=game.translate)
+            )
+        )
+    )
+
+
+def add_call_bluff(results, game):
+    """Add option to call a bluff"""
+    results.append(
+        Sticker(
+            "call_bluff",
+            sticker_file_id=c.STICKERS['option_bluff'],
+            input_message_content=
+            InputTextMessageContent(__("I'm calling your bluff!",
+                                       multi=game.translate))
+        )
+    )
+
+
+def add_card(game, card, results, can_play):
+    """Add an option that represents a card"""
+
+    if can_play:
+        if game.mode != "text":
+            results.append(
+                Sticker(str(card), sticker_file_id=c.STICKERS[str(card)])
+        )
+        if game.mode == "text":
+            results.append(
+                Sticker(str(card), sticker_file_id=c.STICKERS[str(card)], input_message_content=InputTextMessageContent("Card Played: {card}".format(card=repr(card).replace('Draw Four', '+4').replace('Draw', '+2').replace('Colorchooser', 'Color Chooser')))
+        ))
+    else:
+        results.append(
+            Sticker(str(uuid4()), sticker_file_id=c.STICKERS_GREY[str(card)],
+                    input_message_content=game_info(game))
+        )
+
+
+def game_info(game):
+    players = player_list(game)
+    return InputTextMessageContent(
+        _("Current player: {name}")
+        .format(name=display_name(game.current_player.user)) +
+        "\n" +
+        _("Last card: {card}").format(card=repr(game.last_card)) +
+        "\n" +
+        _("Player: {player_list}",
+          "Players: {player_list}",
+          len(players))
+        .format(player_list=" -> ".join(players))
+    )

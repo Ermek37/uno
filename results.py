@@ -87,3 +87,38 @@ def add_mode_fast(results):
             InputTextMessageContent(_('Gotta go fast! 🚀'))
         )
     )
+def add_mode_wild(results):
+    results.append(
+        InlineQueryResultArticle(
+            "mode_wild",
+            title=_("🐉 Wild mode"),
+            input_message_content=
+            InputTextMessageContent(_('Into the Wild~ 🐉'))
+        )
+    )
+
+
+def add_mode_text(results):
+    results.append(
+        InlineQueryResultArticle(
+            "mode_text",
+            title=_("✍️ Text mode"),
+            input_message_content=
+            InputTextMessageContent(_('Text ✍️'))
+        )
+    )
+    
+    
+def add_draw(player, results):
+    n = player.game.draw_counter or 1
+
+    results.append(
+        Sticker(
+            "draw", sticker_file_id=c.STICKERS['option_draw'],
+            input_message_content=
+            InputTextMessageContent(__('Drawing {number} card',
+                                       'Drawing {number} cards', n,
+                                       multi=player.game.translate)
+                                    .format(number=n))
+        )
+    )

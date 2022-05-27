@@ -92,3 +92,55 @@ def user_locale(func):
         _.pop()
         return result
     return wrapped
+
+def game_locales(func):
+    @wraps(func)
+    @db_session
+    def wrapped(bot, update, *pargs, **kwargs):
+        user, chat = _user_chat_from_update(update)
+        player = gm.player_for_user_in_chat(user, chat)
+        locales = list()
+
+        if player:
+            for player in player.game.players:
+                us = UserSetting.get(id=player.user.id)
+
+                if us and us.lang != 'en':
+                    loc = us.lang
+                else:
+                    loc = 'en_US'
+
+                if loc in locales:
+                    continue
+
+                _.push(loc)
+                locales.append(loc)
+
+        result = func(bot, update, *pargs, **kwargs)
+
+        while _.code:
+            _.pop()
+
+        return result
+    return wrapped
+
+
+def _user_chat_from_update(update):
+
+    try:
+        user = update.message.from_user
+        chat = update.message.chat
+    except (NameError, AttributeError):
+        try:
+            user = update.inline_query.from_user
+            chat = gm.userid_current[user.id].game.chat
+        except KeyError:
+            chat = None
+        except (NameError, AttributeError):
+            try:
+                user = update.chosen_inline_result.from_user
+                chat = gm.userid_current[user.id].game.chat
+            except (NameError, AttributeError, KeyError):
+                chat = None
+
+    return user, chat
